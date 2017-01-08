@@ -31,8 +31,8 @@ type room struct {
 }
 
 // newRoom すぐに利用できるチャットルームを生成して返却
-func newRoom() {
-	// 他の開発者は、チャットルームの内部の詳細を把握する必要がなくなる(ヘルパー関すを使って複雑さを下げる)
+func newRoom() *room {
+	// 他の開発者は、チャットルームの内部の詳細を把握する必要がなくなる(ヘルパー関数を使って複雑さを下げる)
 	return &room{
 		forward: make(chan []byte),
 		join:    make(chan *client),
