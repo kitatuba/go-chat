@@ -19,6 +19,28 @@ var upgrader = &websocket.Upgrader{
 	WriteBufferSize: socketBufferSize,
 }
 
+type room struct {
+	// forward 他のクライアントに転送するためのメッセージを保持するチャネル
+	forward chan []byte
+	// join チャットルームに参加しようとしてるクライアントのためのチャネル
+	join chan *client
+	// leave チャットルームから退室しようとしているクライアントのためのチャネル
+	leave chan *client
+	// clients 在室しているすべてのクライアントを保持するマップ join及びleaveプロパティを通して操作される
+	clients map[*client]bool
+}
+
+// newRoom すぐに利用できるチャットルームを生成して返却
+func newRoom() {
+	// 他の開発者は、チャットルームの内部の詳細を把握する必要がなくなる(ヘルパー関すを使って複雑さを下げる)
+	return &room{
+		forward: make(chan []byte),
+		join:    make(chan *client),
+		leave:   make(chan *client),
+		clients: make(map[*client]bool),
+	}
+}
+
 // ServeHTTP http.Handler型に適合 HTTPハンドラとして扱えるようになる
 func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
@@ -46,17 +68,6 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// sendチャネルのクローズまで接続を保持
 	client.read()
-}
-
-type room struct {
-	// forward 他のクライアントに転送するためのメッセージを保持するチャネル
-	forward chan []byte
-	// join チャットルームに参加しようとしてるクライアントのためのチャネル
-	join chan *client
-	// leave チャットルームから退室しようとしているクライアントのためのチャネル
-	leave chan *client
-	// clients 在室しているすべてのクライアントを保持するマップ join及びleaveプロパティを通して操作される
-	clients map[*client]bool
 }
 
 func (r *room) run() {
